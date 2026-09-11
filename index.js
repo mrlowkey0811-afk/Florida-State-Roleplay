@@ -162,10 +162,12 @@ function layout(title, content, user) {
     <nav>
       <a href="/">Home</a>
       <a href="/announcements">Announcements</a>
+      ${user ? `<a href="/staff-announcements" style="color: var(--accent);">Staff Announcements</a>` : ''}
       <a href="/staff">Staff Directory</a>
       <a href="${DISCORD_URL}" target="_blank">Discord</a>
       ${user ? `
         <a href="/staff">Dashboard</a>
+        <a href="/staff/account">My Account</a>
         ${user.is_site_manager ? '<a href="/staff/admin" style="color: var(--accent); font-weight: 700;">Site Manager</a>' : ''}
         <a href="/logout" class="btn btn-danger" style="padding: 0.3rem 0.75rem; font-size: 0.875rem;">Logout</a>
       ` : `
@@ -227,6 +229,41 @@ module.exports = async function handler(req, res) {
       const html = layout('Announcements', `
         <div class="card">
           <h2>Community Announcements</h2>
+          ${announcementsHtml}
+        </div>
+      `, user);
+      res.setHeader('Content-Type', 'text/html');
+      return res.status(200).send(html);
+    }
+
+    if (pathname === '/staff-announcements') {
+      if (!user) {
+        res.writeHead(302, { Location: '/staff/login' });
+        return res.end();
+      }
+
+      let announcements = [];
+      try {
+        const result = await sql`SELECT * FROM staff_announcements ORDER BY created_at DESC`;
+        announcements = result.rows || [];
+      } catch (e) {
+        announcements = [];
+      }
+
+      let announcementsHtml = announcements.length === 0 
+        ? '<p>No staff announcements posted yet.</p>' 
+        : announcements.map(a => `
+            <div style="background: rgba(30, 41, 59, 0.4); padding: 1.25rem; border-radius: 8px; margin-bottom: 1rem; border-left: 4px solid var(--accent);">
+              <h3 style="margin-bottom: 0.25rem;">${escapeHtml(a.title)}</h3>
+              <p style="font-size: 0.8rem; color: #64748b; margin-bottom: 0.75rem;">Posted by ${escapeHtml(a.author)}</p>
+              <p style="color: #cbd5e1; white-space: pre-wrap; margin-bottom: 0;">${escapeHtml(a.content)}</p>
+            </div>
+          `).join('');
+
+      const html = layout('Staff Announcements', `
+        <div class="card">
+          <h2>Staff Announcements</h2>
+          <p>Internal notices and announcements for staff members only.</p>
           ${announcementsHtml}
         </div>
       `, user);
@@ -355,6 +392,54 @@ module.exports = async function handler(req, res) {
       return res.end();
     }
 
+    if (pathname === '/staff/account') {
+      if (!user) {
+        res.writeHead(302, { Location: '/staff/login' });
+        return res.end();
+      }
+
+      let message = '';
+      if (req.method === 'POST') {
+        let body = '';
+        for await (const chunk of req) body += chunk;
+        const params = new URLSearchParams(body);
+        const currentPassword = params.get('current_password');
+        const newPassword = params.get('new_password');
+
+        try {
+          const result = await sql`SELECT * FROM accounts WHERE id = ${user.id}`;
+          const account = result.rows[0];
+
+          if (account && (await bcrypt.compare(currentPassword, account.password_hash))) {
+            const newHash = await bcrypt.hash(newPassword, 10);
+            await sql`UPDATE accounts SET password_hash = ${newHash} WHERE id = ${user.id}`;
+            message = 'Password changed successfully!';
+          } else {
+            message = 'Incorrect current password.';
+          }
+        } catch (e) {
+          message = 'Error updating password.';
+        }
+      }
+
+      const html = layout('My Account', `
+        <div class="card" style="max-width: 500px; margin: 2rem auto;">
+          <h2>My Account</h2>
+          <p>Manage your account settings and change your password.</p>
+          ${message ? `<p style="color: var(--accent); font-weight: bold; margin-bottom: 1rem;">${message}</p>` : ''}
+          <form method="POST">
+            <label>Current Password</label>
+            <input type="password" name="current_password" required>
+            <label>New Password</label>
+            <input type="password" name="new_password" required>
+            <button type="submit" class="btn" style="margin-top: 1rem;">Change Password</button>
+          </form>
+        </div>
+      `, user);
+      res.setHeader('Content-Type', 'text/html');
+      return res.status(200).send(html);
+    }
+
     if (pathname === '/staff/admin') {
       if (!user || !user.is_site_manager) {
         res.writeHead(302, { Location: '/staff/login' });
@@ -385,6 +470,37 @@ module.exports = async function handler(req, res) {
           } catch (e) {
             message = 'Error creating account (username might already exist).';
           }
+        } else if (action === 'create_announcement') {
+          const title = params.get('title');
+          const bodyContent = params.get('body');
+          const target = params.get('target');
+
+          try {
+            if (target === 'staff') {
+              await sql`
+                CREATE TABLE IF NOT EXISTS staff_announcements (
+                  id SERIAL PRIMARY KEY,
+                  title VARCHAR(255) NOT NULL,
+                  content TEXT NOT NULL,
+                  author VARCHAR(255),
+                  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+              `;
+              await sql`
+                INSERT INTO staff_announcements (title, content, author)
+                VALUES (${title}, ${bodyContent}, ${user.username})
+              `;
+              message = 'Staff announcement posted successfully!';
+            } else {
+              await sql`
+                INSERT INTO announcements (title, body, author)
+                VALUES (${title}, ${bodyContent}, ${user.username})
+              `;
+              message = 'Community announcement posted successfully!';
+            }
+          } catch (e) {
+            message = 'Error posting announcement.';
+          }
         }
       }
 
@@ -406,7 +522,28 @@ module.exports = async function handler(req, res) {
           <h2>Site Manager Control Center</h2>
           ${message ? `<p style="color: var(--accent); font-weight: bold;">${message}</p>` : ''}
           
-          <h3 style="margin-top: 2rem;">Create Staff Account</h3>
+          <h3 style="margin-top: 2rem;">Post Announcement</h3>
+          <form method="POST">
+            <input type="hidden" name="action" value="create_announcement">
+            <div>
+              <label>Title</label>
+              <input type="text" name="title" required>
+            </div>
+            <div style="margin-top: 1rem;">
+              <label>Content / Body</label>
+              <textarea name="body" rows="4" required></textarea>
+            </div>
+            <div style="margin-top: 1rem;">
+              <label>Target Audience</label>
+              <select name="target">
+                <option value="public">Public Community</option>
+                <option value="staff">Staff Only</option>
+              </select>
+            </div>
+            <button type="submit" class="btn" style="margin-top: 1rem; width: auto;">Publish Announcement</button>
+          </form>
+
+          <h3 style="margin-top: 3rem;">Create Staff Account</h3>
           <form method="POST">
             <input type="hidden" name="action" value="create_account">
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
@@ -461,7 +598,7 @@ module.exports = async function handler(req, res) {
       <div class="card" style="text-align: center; padding: 3rem;">
         <h2>Page Not Found</h2>
         <p>The page you are looking for does not exist.</p>
-        <a href="/" class="btn" style="display: inline-block; margin-top: 1rem;">Return Home</a>
+        <a href="/" class="btn" style="display: inline-package; margin-top: 1rem;">Return Home</a>
       </div>
     `, user);
     res.setHeader('Content-Type', 'text/html');
