@@ -4,8 +4,8 @@ const cookie = require('cookie');
 const { parse } = require('url');
 
 // --- CONFIGURATION ---
-const OWNERS = ['Jai']; // Primary founders/owners
-const DISCORD_URL = 'https://discord.gg/yourserver'; // Replace with your community Discord
+const OWNERS = ['Jai']; 
+const DISCORD_URL = 'https://discord.gg/yourserver';
 const RANK_TIERS = [
   { id: 'trial', name: 'Trial Staff' },
   { id: 'mod', name: 'Moderator' },
@@ -15,13 +15,10 @@ const RANK_TIERS = [
   { id: 'founder', name: 'Foundership' }
 ];
 
-// Session helper
 function getSessionUser(req) {
   try {
     const cookies = cookie.parse(req.headers.cookie || '');
     if (!cookies.session) return null;
-    const secret = process.env.SESSION_SECRET || 'dev-secret';
-    // Simple signed cookie verification check or JSON parse depending on how your auth was set up
     const sessionData = JSON.parse(Buffer.from(cookies.session, 'base64').toString());
     if (sessionData && sessionData.expires > Date.now()) {
       return sessionData;
@@ -32,7 +29,6 @@ function getSessionUser(req) {
   return null;
 }
 
-// HTML Shell with Florida Palm Trees and Blue Aesthetic
 function layout(title, content, user) {
   return `<!DOCTYPE html>
 <html lang="en">
@@ -76,7 +72,7 @@ function layout(title, content, user) {
       text-decoration: none;
       display: flex;
       align-items: center;
-      gap: 0.5r em;
+      gap: 0.5rem;
     }
     .logo span { color: var(--accent); }
     nav {
@@ -169,7 +165,7 @@ function layout(title, content, user) {
       <a href="/staff">Staff Directory</a>
       <a href="${DISCORD_URL}" target="_blank">Discord</a>
       ${user ? `
-        <a href="/account">My Account</a>
+        <a href="/staff">Dashboard</a>
         ${user.is_site_manager ? '<a href="/staff/admin" style="color: var(--accent); font-weight: 700;">Site Manager</a>' : ''}
         <a href="/logout" class="btn btn-danger" style="padding: 0.3rem 0.75rem; font-size: 0.875rem;">Logout</a>
       ` : `
@@ -187,13 +183,11 @@ function layout(title, content, user) {
 </html>`;
 }
 
-// --- MAIN REQUEST HANDLER ---
 module.exports = async function handler(req, res) {
-  const { pathname, query } = parse(req.url, true);
+  const { pathname } = parse(req.url, true);
   const user = getSessionUser(req);
 
   try {
-    // --- HOME PAGE ---
     if (pathname === '/' || pathname === '') {
       const html = layout('Home', `
         <div class="card" style="text-align: center; padding: 3rem 2rem;">
@@ -211,14 +205,13 @@ module.exports = async function handler(req, res) {
       return res.status(200).send(html);
     }
 
-    // --- ANNOUNCEMENTS PAGE ---
     if (pathname === '/announcements') {
       let announcements = [];
       try {
         const result = await sql`SELECT * FROM announcements ORDER BY created_at DESC`;
-        announcements = result.rows;
+        announcements = result.rows || [];
       } catch (e) {
-        // Tables might not be initialized yet
+        announcements = [];
       }
 
       let announcementsHtml = announcements.length === 0 
@@ -226,19 +219,14 @@ module.exports = async function handler(req, res) {
         : announcements.map(a => `
             <div style="background: rgba(30, 41, 59, 0.4); padding: 1.25rem; border-radius: 8px; margin-bottom: 1rem; border-left: 4px solid var(--accent);">
               <h3 style="margin-bottom: 0.25rem;">${escapeHtml(a.title)}</h3>
-              <p style="font-size: 0.8rem; color: #64748b; margin-bottom: 0.75rem;">Posted by ${escapeHtml(a.author)} on ${new Date(a.created_at).toLocaleDateString()}</p>
+              <p style="font-size: 0.8rem; color: #64748b; margin-bottom: 0.75rem;">Posted by ${escapeHtml(a.author)}</p>
               <p style="color: #cbd5e1; white-space: pre-wrap; margin-bottom: 0;">${escapeHtml(a.body)}</p>
             </div>
           `).join('');
 
-      const canPost = user && (user.is_site_manager || ['high', 'founder', 'senior'].includes(user.rank_tier));
-
       const html = layout('Announcements', `
         <div class="card">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-            <h2>Community Announcements</h2>
-            ${canPost ? '<a href="/announcements/new" class="btn">New Announcement</a>' : ''}
-          </div>
+          <h2>Community Announcements</h2>
           ${announcementsHtml}
         </div>
       `, user);
@@ -246,18 +234,19 @@ module.exports = async function handler(req, res) {
       return res.status(200).send(html);
     }
 
-    // --- STAFF DIRECTORY ---
     if (pathname === '/staff') {
       let accounts = [];
       try {
-        const result = await sql`SELECT username, rank_tier, rank_title, created_at FROM accounts ORDER BY id ASC`;
-        accounts = result.rows;
-      } catch (e) {}
+        const result = await sql`SELECT username, rank_tier, rank_title FROM accounts ORDER BY id ASC`;
+        accounts = result.rows || [];
+      } catch (e) {
+        accounts = [];
+      }
 
       let rows = accounts.length === 0 
         ? '<tr><td colspan="3" style="text-align: center;">No staff members registered.</td></tr>'
         : accounts.map(acc => {
-            const tierObj = RANK_TIERS.find(t => t.id === acc.rank_tier) || { name: acc.rank_tier };
+            const tierObj = RANK_TIERS.find(t => t.id === acc.rank_tier) || { name: acc.rank_tier || 'Staff' };
             return `
               <tr>
                 <td><strong>${escapeHtml(acc.username)}</strong></td>
@@ -289,7 +278,6 @@ module.exports = async function handler(req, res) {
       return res.status(200).send(html);
     }
 
-    // --- LOGIN PAGE ---
     if (pathname === '/staff/login') {
       if (req.method === 'POST') {
         let body = '';
@@ -308,7 +296,7 @@ module.exports = async function handler(req, res) {
               username: account.username,
               rank_tier: account.rank_tier,
               is_site_manager: account.is_site_manager,
-              expires: Date.now() + 86400000 * 7 // 7 days
+              expires: Date.now() + 86400000 * 7
             };
             const encodedSession = Buffer.from(JSON.stringify(sessionData)).toString('base64');
             res.setHeader('Set-Cookie', cookie.serialize('session', encodedSession, {
@@ -357,7 +345,6 @@ module.exports = async function handler(req, res) {
       return res.status(200).send(html);
     }
 
-    // --- LOGOUT ---
     if (pathname === '/logout') {
       res.setHeader('Set-Cookie', cookie.serialize('session', '', {
         httpOnly: true,
@@ -368,7 +355,6 @@ module.exports = async function handler(req, res) {
       return res.end();
     }
 
-    // --- SITE MANAGER AREA ---
     if (pathname === '/staff/admin') {
       if (!user || !user.is_site_manager) {
         res.writeHead(302, { Location: '/staff/login' });
@@ -402,8 +388,12 @@ module.exports = async function handler(req, res) {
         }
       }
 
-      let accountsRes = await sql`SELECT id, username, rank_tier, rank_title, is_site_manager FROM accounts ORDER BY id ASC`;
-      let accountsList = accountsRes.rows.map(acc => `
+      let accountsRes = { rows: [] };
+      try {
+        accountsRes = await sql`SELECT id, username, rank_tier, rank_title, is_site_manager FROM accounts ORDER BY id ASC`;
+      } catch (e) {}
+
+      let accountsList = (accountsRes.rows || []).map(acc => `
         <tr>
           <td>${escapeHtml(acc.username)}</td>
           <td>${escapeHtml(acc.rank_tier)}</td>
@@ -467,7 +457,6 @@ module.exports = async function handler(req, res) {
       return res.status(200).send(html);
     }
 
-    // 404 Not Found
     const html = layout('Not Found', `
       <div class="card" style="text-align: center; padding: 3rem;">
         <h2>Page Not Found</h2>
