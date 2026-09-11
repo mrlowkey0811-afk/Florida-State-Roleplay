@@ -41,13 +41,13 @@ function layout(title, content, user) {
       --blue-primary: #1e3a8a;
       --blue-secondary: #3b82f6;
       --blue-dark: #0f172a;
-      --accent: #60a5fa;
+      --accent: #38bdf8;
       --glass: rgba(15, 23, 42, 0.85);
-      --border: rgba(96, 165, 250, 0.2);
+      --border: rgba(56, 189, 248, 0.15);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      background: linear-gradient(rgba(15, 23, 42, 0.8), rgba(15, 23, 42, 0.95)),
+      background: linear-gradient(rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.95)),
                   url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1920&q=80') no-repeat center center fixed;
       background-size: cover;
       color: #f8fafc;
@@ -57,13 +57,16 @@ function layout(title, content, user) {
       flex-direction: column;
     }
     header {
-      background: rgba(15, 23, 42, 0.9);
+      background: rgba(15, 23, 42, 0.95);
       border-bottom: 1px solid var(--border);
       padding: 1rem 2rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
       backdrop-filter: blur(10px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
     }
     .logo {
       font-weight: 800;
@@ -73,6 +76,7 @@ function layout(title, content, user) {
       display: flex;
       align-items: center;
       gap: 0.5rem;
+      letter-spacing: -0.5px;
     }
     .logo span { color: var(--accent); }
     nav {
@@ -84,6 +88,7 @@ function layout(title, content, user) {
       color: #cbd5e1;
       text-decoration: none;
       font-weight: 500;
+      font-size: 0.95rem;
       transition: color 0.2s;
     }
     nav a:hover { color: var(--accent); }
@@ -96,11 +101,13 @@ function layout(title, content, user) {
       font-weight: 600;
       border: none;
       cursor: pointer;
-      transition: background 0.2s;
+      transition: background 0.2s, transform 0.1s;
     }
     .btn:hover { background: #2563eb; }
-    .btn-danger { background: #dc2626; }
-    .btn-danger:hover { background: #b91c1c; }
+    .btn:active { transform: scale(0.98); }
+    .btn-danger { background: #ef4444; }
+    .btn-danger:hover { background: #dc2626; }
+    .btn-sm { padding: 0.25rem 0.6rem; font-size: 0.8rem; }
     main {
       flex: 1;
       max-width: 1000px;
@@ -111,24 +118,25 @@ function layout(title, content, user) {
     .card {
       background: var(--glass);
       border: 1px solid var(--border);
-      border-radius: 12px;
+      border-radius: 14px;
       padding: 2rem;
       backdrop-filter: blur(12px);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
       margin-bottom: 1.5rem;
     }
-    h1, h2, h3 { margin-bottom: 1rem; color: #fff; }
-    p { margin-bottom: 1rem; color: #94a3b8; line-height: 1.5; }
+    h1, h2, h3 { margin-bottom: 1rem; color: #fff; letter-spacing: -0.5px; }
+    p { margin-bottom: 1rem; color: #94a3b8; line-height: 1.6; }
     form { display: flex; flex-direction: column; gap: 1rem; }
     label { font-size: 0.875rem; font-weight: 600; color: #cbd5e1; }
     input, select, textarea {
       background: rgba(30, 41, 59, 0.7);
       border: 1px solid var(--border);
-      border-radius: 6px;
+      border-radius: 8px;
       padding: 0.75rem;
       color: white;
       font-size: 1rem;
       width: 100%;
+      transition: border-color 0.2s;
     }
     input:focus, select:focus, textarea:focus {
       outline: none;
@@ -140,19 +148,78 @@ function layout(title, content, user) {
       margin-top: 1rem;
     }
     th, td {
-      padding: 0.75rem;
+      padding: 0.85rem;
       text-align: left;
       border-bottom: 1px solid var(--border);
     }
-    th { color: var(--accent); font-weight: 600; }
-    td { color: #e2e8f0; }
+    th { color: var(--accent); font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; }
+    td { color: #e2e8f0; font-size: 0.95rem; }
+    
+    /* Custom Modern Announcement Feed Styles */
+    .announcement-feed {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      margin-top: 1rem;
+    }
+    .announcement-card {
+      background: linear-gradient(135deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.8) 100%);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+    .announcement-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: var(--accent);
+    }
+    .announcement-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 0.75rem;
+      gap: 1rem;
+    }
+    .announcement-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #fff;
+    }
+    .announcement-meta {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.8rem;
+      color: #64748b;
+    }
+    .announcement-author {
+      background: rgba(56, 189, 248, 0.1);
+      color: var(--accent);
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+    .announcement-body {
+      color: #cbd5e1;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      white-space: pre-wrap;
+    }
+
     footer {
       text-align: center;
       padding: 1.5rem;
       color: #64748b;
       font-size: 0.875rem;
       border-top: 1px solid var(--border);
-      background: rgba(15, 23, 42, 0.9);
+      background: rgba(15, 23, 42, 0.95);
     }
   </style>
 </head>
@@ -192,14 +259,14 @@ module.exports = async function handler(req, res) {
   try {
     if (pathname === '/' || pathname === '') {
       const html = layout('Home', `
-        <div class="card" style="text-align: center; padding: 3rem 2rem;">
-          <h1 style="font-size: 2.5rem; margin-bottom: 1rem;">Florida State Roleplay</h1>
+        <div class="card" style="text-align: center; padding: 3.5rem 2rem;">
+          <h1 style="font-size: 2.75rem; margin-bottom: 1rem;">Florida State Roleplay</h1>
           <p style="font-size: 1.1rem; max-width: 600px; margin: 0 auto 2rem auto;">
-            Welcome to the official administrative portal for Florida State Roleplay. Access community announcements, staff directories, and internal management tools.
+            Welcome to the official administrative portal for Florida State Roleplay. Access community updates, staff directories, and internal management tools.
           </p>
           <div style="display: flex; gap: 1rem; justify-content: center;">
             <a href="/announcements" class="btn">View Announcements</a>
-            <a href="${DISCORD_URL}" class="btn" style="background: #475569;">Join Discord</a>
+            <a href="${DISCORD_URL}" class="btn" style="background: #334155;">Join Discord</a>
           </div>
         </div>
       `, user);
@@ -217,20 +284,33 @@ module.exports = async function handler(req, res) {
       }
 
       let announcementsHtml = announcements.length === 0 
-        ? '<p>No announcements posted yet.</p>' 
-        : announcements.map(a => `
-            <div style="background: rgba(30, 41, 59, 0.4); padding: 1.25rem; border-radius: 8px; margin-bottom: 1rem; border-left: 4px solid var(--accent);">
-              <h3 style="margin-bottom: 0.25rem;">${escapeHtml(a.title)}</h3>
-              <p style="font-size: 0.8rem; color: #64748b; margin-bottom: 0.75rem;">Posted by ${escapeHtml(a.author)}</p>
-              <p style="color: #cbd5e1; white-space: pre-wrap; margin-bottom: 0;">${escapeHtml(a.body)}</p>
-            </div>
-          `).join('');
+        ? '<div class="card" style="text-align: center; color: #64748b;"><p>No active announcements right now. Check back soon!</p></div>' 
+        : `<div class="announcement-feed">` + announcements.map(a => {
+            const dateStr = a.created_at ? new Date(a.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+            return `
+              <div class="announcement-card">
+                <div class="announcement-header">
+                  <div class="announcement-title">${escapeHtml(a.title)}</div>
+                  <div class="announcement-meta">
+                    ${dateStr ? `<span>${dateStr}</span>` : ''}
+                  </div>
+                </div>
+                <div style="margin-bottom: 0.75rem;">
+                  <span class="announcement-author">${escapeHtml(a.author || 'Management')}</span>
+                </div>
+                <div class="announcement-body">${escapeHtml(a.body)}</div>
+              </div>
+            `;
+          }).join('') + `</div>`;
 
       const html = layout('Announcements', `
-        <div class="card">
-          <h2>Community Announcements</h2>
-          ${announcementsHtml}
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+          <div>
+            <h2>Community Updates</h2>
+            <p style="margin-bottom: 0;">Stay up to date with the latest news, updates, and events from FSRP.</p>
+          </div>
         </div>
+        ${announcementsHtml}
       `, user);
       res.setHeader('Content-Type', 'text/html');
       return res.status(200).send(html);
@@ -251,21 +331,31 @@ module.exports = async function handler(req, res) {
       }
 
       let announcementsHtml = announcements.length === 0 
-        ? '<p>No staff announcements posted yet.</p>' 
-        : announcements.map(a => `
-            <div style="background: rgba(30, 41, 59, 0.4); padding: 1.25rem; border-radius: 8px; margin-bottom: 1rem; border-left: 4px solid var(--accent);">
-              <h3 style="margin-bottom: 0.25rem;">${escapeHtml(a.title)}</h3>
-              <p style="font-size: 0.8rem; color: #64748b; margin-bottom: 0.75rem;">Posted by ${escapeHtml(a.author)}</p>
-              <p style="color: #cbd5e1; white-space: pre-wrap; margin-bottom: 0;">${escapeHtml(a.content)}</p>
-            </div>
-          `).join('');
+        ? '<div class="card" style="text-align: center; color: #64748b;"><p>No staff memos posted yet.</p></div>' 
+        : `<div class="announcement-feed">` + announcements.map(a => {
+            const dateStr = a.created_at ? new Date(a.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+            return `
+              <div class="announcement-card" style="border-left-color: #3b82f6;">
+                <div class="announcement-header">
+                  <div class="announcement-title">${escapeHtml(a.title)}</div>
+                  <div class="announcement-meta">
+                    ${dateStr ? `<span>${dateStr}</span>` : ''}
+                  </div>
+                </div>
+                <div style="margin-bottom: 0.75rem;">
+                  <span class="announcement-author" style="background: rgba(59, 130, 246, 0.15); color: #60a5fa;">${escapeHtml(a.author || 'Admin')}</span>
+                </div>
+                <div class="announcement-body">${escapeHtml(a.content)}</div>
+              </div>
+            `;
+          }).join('') + `</div>`;
 
       const html = layout('Staff Announcements', `
-        <div class="card">
-          <h2>Staff Announcements</h2>
-          <p>Internal notices and announcements for staff members only.</p>
-          ${announcementsHtml}
+        <div style="margin-bottom: 1.5rem;">
+          <h2>Staff Memos & Board</h2>
+          <p style="margin-bottom: 0;">Internal operational updates restricted to active staff personnel.</p>
         </div>
+        ${announcementsHtml}
       `, user);
       res.setHeader('Content-Type', 'text/html');
       return res.status(200).send(html);
@@ -287,7 +377,7 @@ module.exports = async function handler(req, res) {
             return `
               <tr>
                 <td><strong>${escapeHtml(acc.username)}</strong></td>
-                <td>${escapeHtml(tierObj.name)}</td>
+                <td><span style="background: rgba(56, 189, 248, 0.1); color: var(--accent); padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.85rem; font-weight: 600;">${escapeHtml(tierObj.name)}</span></td>
                 <td>${escapeHtml(acc.rank_title || 'Staff Member')}</td>
               </tr>
             `;
@@ -368,7 +458,7 @@ module.exports = async function handler(req, res) {
       const html = layout('Staff Login', `
         <div class="card" style="max-width: 400px; margin: 4rem auto;">
           <h2>Staff Login</h2>
-          <p>Use the Roblox username and password you were given.</p>
+          <p>Use the credentials provided by management.</p>
           <form method="POST">
             <label>Roblox Username</label>
             <input type="text" name="username" required>
@@ -425,7 +515,7 @@ module.exports = async function handler(req, res) {
       const html = layout('My Account', `
         <div class="card" style="max-width: 500px; margin: 2rem auto;">
           <h2>My Account</h2>
-          <p>Manage your account settings and change your password.</p>
+          <p>Manage your password and security settings.</p>
           ${message ? `<p style="color: var(--accent); font-weight: bold; margin-bottom: 1rem;">${message}</p>` : ''}
           <form method="POST">
             <label>Current Password</label>
@@ -501,12 +591,38 @@ module.exports = async function handler(req, res) {
           } catch (e) {
             message = 'Error posting announcement.';
           }
+        } else if (action === 'delete_announcement') {
+          const id = params.get('id');
+          const type = params.get('type');
+          try {
+            if (type === 'staff') {
+              await sql`DELETE FROM staff_announcements WHERE id = ${id}`;
+            } else {
+              await sql`DELETE FROM announcements WHERE id = ${id}`;
+            }
+            message = 'Announcement deleted successfully.';
+          } catch (e) {
+            message = 'Error deleting announcement.';
+          }
         }
       }
 
       let accountsRes = { rows: [] };
+      let publicAnnouncements = [];
+      let staffAnnouncements = [];
+
       try {
         accountsRes = await sql`SELECT id, username, rank_tier, rank_title, is_site_manager FROM accounts ORDER BY id ASC`;
+      } catch (e) {}
+
+      try {
+        const pubRes = await sql`SELECT id, title, author, created_at FROM announcements ORDER BY created_at DESC`;
+        publicAnnouncements = pubRes.rows || [];
+      } catch (e) {}
+
+      try {
+        const staffRes = await sql`SELECT id, title, author, created_at FROM staff_announcements ORDER BY created_at DESC`;
+        staffAnnouncements = staffRes.rows || [];
       } catch (e) {}
 
       let accountsList = (accountsRes.rows || []).map(acc => `
@@ -517,33 +633,80 @@ module.exports = async function handler(req, res) {
         </tr>
       `).join('');
 
+      let manageAnnouncementsList = '';
+      
+      if (publicAnnouncements.length > 0) {
+        manageAnnouncementsList += `<h4 style="color: var(--accent); margin-top: 1rem;">Public Announcements</h4><table><thead><tr><th>Title</th><th>Author</th><th style="text-align: right;">Action</th></tr></thead><tbody>`;
+        manageAnnouncementsList += publicAnnouncements.map(a => `
+          <tr>
+            <td>${escapeHtml(a.title)}</td>
+            <td>${escapeHtml(a.author || 'N/A')}</td>
+            <td style="text-align: right;">
+              <form method="POST" style="display:inline;">
+                <input type="hidden" name="action" value="delete_announcement">
+                <input type="hidden" name="id" value="${a.id}">
+                <input type="hidden" name="type" value="public">
+                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Delete this announcement?')">Delete</button>
+              </form>
+            </td>
+          </tr>
+        `).join('');
+        manageAnnouncementsList += `</tbody></table>`;
+      }
+
+      if (staffAnnouncements.length > 0) {
+        manageAnnouncementsList += `<h4 style="color: var(--accent); margin-top: 1.5rem;">Staff Announcements</h4><table><thead><tr><th>Title</th><th>Author</th><th style="text-align: right;">Action</th></tr></thead><tbody>`;
+        manageAnnouncementsList += staffAnnouncements.map(a => `
+          <tr>
+            <td>${escapeHtml(a.title)}</td>
+            <td>${escapeHtml(a.author || 'N/A')}</td>
+            <td style="text-align: right;">
+              <form method="POST" style="display:inline;">
+                <input type="hidden" name="action" value="delete_announcement">
+                <input type="hidden" name="id" value="${a.id}">
+                <input type="hidden" name="type" value="staff">
+                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Delete this staff announcement?')">Delete</button>
+              </form>
+            </td>
+          </tr>
+        `).join('');
+        manageAnnouncementsList += `</tbody></table>`;
+      }
+
+      if (publicAnnouncements.length === 0 && staffAnnouncements.length === 0) {
+        manageAnnouncementsList = `<p style="color: #64748b; margin-top: 0.5rem;">No announcements available to manage.</p>`;
+      }
+
       const html = layout('Site Manager', `
         <div class="card">
           <h2>Site Manager Control Center</h2>
-          ${message ? `<p style="color: var(--accent); font-weight: bold;">${message}</p>` : ''}
+          ${message ? `<p style="color: var(--accent); font-weight: bold; margin-bottom: 1rem;">${message}</p>` : ''}
           
-          <h3 style="margin-top: 2rem;">Post Announcement</h3>
+          <h3 style="margin-top: 1.5rem;">Post Announcement</h3>
           <form method="POST">
             <input type="hidden" name="action" value="create_announcement">
             <div>
               <label>Title</label>
               <input type="text" name="title" required>
             </div>
-            <div style="margin-top: 1rem;">
+            <div style="margin-top: 0.5rem;">
               <label>Content / Body</label>
               <textarea name="body" rows="4" required></textarea>
             </div>
-            <div style="margin-top: 1rem;">
+            <div style="margin-top: 0.5rem;">
               <label>Target Audience</label>
               <select name="target">
                 <option value="public">Public Community</option>
                 <option value="staff">Staff Only</option>
               </select>
             </div>
-            <button type="submit" class="btn" style="margin-top: 1rem; width: auto;">Publish Announcement</button>
+            <button type="submit" class="btn" style="margin-top: 0.5rem; width: auto;">Publish Announcement</button>
           </form>
 
-          <h3 style="margin-top: 3rem;">Create Staff Account</h3>
+          <h3 style="margin-top: 2.5rem;">Manage & Delete Announcements</h3>
+          ${manageAnnouncementsList}
+
+          <h3 style="margin-top: 2.5rem;">Create Staff Account</h3>
           <form method="POST">
             <input type="hidden" name="action" value="create_account">
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
@@ -556,7 +719,7 @@ module.exports = async function handler(req, res) {
                 <input type="password" name="password" required>
               </div>
             </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 0.5rem;">
               <div>
                 <label>Rank Tier</label>
                 <select name="rank_tier">
@@ -568,14 +731,14 @@ module.exports = async function handler(req, res) {
                 <input type="text" name="rank_title" value="Staff Member" required>
               </div>
             </div>
-            <div style="margin-top: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+            <div style="margin-top: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
               <input type="checkbox" name="is_site_manager" style="width: auto;">
               <label style="margin: 0;">Grant Site Manager Permissions</label>
             </div>
-            <button type="submit" class="btn" style="margin-top: 1rem; width: auto;">Create Account</button>
+            <button type="submit" class="btn" style="margin-top: 0.5rem; width: auto;">Create Account</button>
           </form>
 
-          <h3 style="margin-top: 3rem;">Existing Accounts</h3>
+          <h3 style="margin-top: 2.5rem;">Existing Accounts</h3>
           <table>
             <thead>
               <tr>
@@ -598,7 +761,7 @@ module.exports = async function handler(req, res) {
       <div class="card" style="text-align: center; padding: 3rem;">
         <h2>Page Not Found</h2>
         <p>The page you are looking for does not exist.</p>
-        <a href="/" class="btn" style="display: inline-package; margin-top: 1rem;">Return Home</a>
+        <a href="/" class="btn" style="display: inline-block; margin-top: 1rem;">Return Home</a>
       </div>
     `, user);
     res.setHeader('Content-Type', 'text/html');
