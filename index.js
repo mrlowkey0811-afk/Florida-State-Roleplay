@@ -96,11 +96,7 @@ function getSession(req) {
 async function readJsonBody(req) {
   if (req.body !== undefined && req.body !== null) {
     if (typeof req.body === "string") {
-      try {
-        return JSON.parse(req.body || "{}");
-      } catch {
-        return {};
-      }
+      try { return JSON.parse(req.body || "{}"); } catch { return {}; }
     }
     return req.body;
   }
@@ -114,6 +110,13 @@ async function readJsonBody(req) {
         resolve({});
       }
     });
+    setTimeout(() => {
+      try {
+        resolve(data ? JSON.parse(data) : {});
+      } catch {
+        resolve({});
+      }
+    }, 100);
   });
 }
 function sendJson(res, status, obj) {
