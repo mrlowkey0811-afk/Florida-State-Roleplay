@@ -5,7 +5,7 @@ const { parse } = require('url');
 
 // --- CONFIGURATION ---
 const OWNERS = ['Jai']; 
-const DISCORD_URL = 'https://discord.gg/yourserver';
+const DISCORD_URL = 'https://discord.gg/6MhH9Gh7DJ';
 const RANK_TIERS = [
   { id: 'trial', name: 'Trial Staff' },
   { id: 'mod', name: 'Moderator' },
