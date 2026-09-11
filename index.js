@@ -38,109 +38,117 @@ function layout(title, content, user) {
   <title>${title} — Florida State Roleplay</title>
   <style>
     :root {
-      --blue-primary: #1e3a8a;
-      --blue-secondary: #3b82f6;
-      --blue-dark: #0f172a;
+      --bg-base: #090d16;
+      --bg-surface: #111827;
+      --bg-card: rgba(17, 24, 39, 0.75);
       --accent: #38bdf8;
-      --glass: rgba(15, 23, 42, 0.85);
-      --border: rgba(56, 189, 248, 0.15);
+      --accent-glow: rgba(56, 189, 248, 0.15);
+      --border: rgba(255, 255, 255, 0.08);
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      background: linear-gradient(rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.95)),
+      background: linear-gradient(135deg, #050811 0%, #0f172a 100%),
                   url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1920&q=80') no-repeat center center fixed;
+      background-blend-mode: overlay;
       background-size: cover;
-      color: #f8fafc;
+      color: var(--text-main);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
     }
     header {
-      background: rgba(15, 23, 42, 0.95);
+      background: rgba(9, 13, 22, 0.85);
       border-bottom: 1px solid var(--border);
       padding: 1rem 2rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      backdrop-filter: blur(10px);
+      backdrop-filter: blur(12px);
       position: sticky;
       top: 0;
       z-index: 100;
     }
     .logo {
       font-weight: 800;
-      font-size: 1.25rem;
+      font-size: 1.2rem;
       color: #fff;
       text-decoration: none;
       display: flex;
       align-items: center;
       gap: 0.5rem;
-      letter-spacing: -0.5px;
+      letter-spacing: -0.3px;
     }
-    .logo span { color: var(--accent); }
+    .logo span { color: var(--accent); text-shadow: 0 0 15px var(--accent-glow); }
     nav {
       display: flex;
       gap: 1.5rem;
       align-items: center;
     }
     nav a {
-      color: #cbd5e1;
+      color: var(--text-muted);
       text-decoration: none;
       font-weight: 500;
-      font-size: 0.95rem;
-      transition: color 0.2s;
+      font-size: 0.9rem;
+      transition: color 0.2s ease;
     }
     nav a:hover { color: var(--accent); }
     .btn {
-      background: var(--blue-secondary);
+      background: linear-gradient(135deg, #0284c7 0%, #0284c7 100%);
+      background-color: #0284c7;
       color: white;
       padding: 0.5rem 1rem;
-      border-radius: 6px;
+      border-radius: 8px;
       text-decoration: none;
       font-weight: 600;
+      font-size: 0.9rem;
       border: none;
       cursor: pointer;
-      transition: background 0.2s, transform 0.1s;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
     }
-    .btn:hover { background: #2563eb; }
-    .btn:active { transform: scale(0.98); }
-    .btn-danger { background: #ef4444; }
-    .btn-danger:hover { background: #dc2626; }
-    .btn-sm { padding: 0.25rem 0.6rem; font-size: 0.8rem; }
+    .btn:hover { background-color: #0369a1; transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+    .btn-danger { background-color: #dc2626; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25); }
+    .btn-danger:hover { background-color: #b91c1c; }
+    .btn-sm { padding: 0.3rem 0.6rem; font-size: 0.8rem; border-radius: 6px; }
+    
     main {
       flex: 1;
-      max-width: 1000px;
+      max-width: 900px;
       width: 100%;
-      margin: 2rem auto;
+      margin: 2.5rem auto;
       padding: 0 1rem;
     }
     .card {
-      background: var(--glass);
+      background: var(--bg-card);
       border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 2rem;
-      backdrop-filter: blur(12px);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      border-radius: 16px;
+      padding: 2.25rem;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
       margin-bottom: 1.5rem;
     }
-    h1, h2, h3 { margin-bottom: 1rem; color: #fff; letter-spacing: -0.5px; }
-    p { margin-bottom: 1rem; color: #94a3b8; line-height: 1.6; }
+    h1, h2, h3 { margin-bottom: 0.75rem; color: #fff; letter-spacing: -0.5px; }
+    p { margin-bottom: 1rem; color: var(--text-muted); line-height: 1.6; font-size: 0.95rem; }
     form { display: flex; flex-direction: column; gap: 1rem; }
-    label { font-size: 0.875rem; font-weight: 600; color: #cbd5e1; }
+    label { font-size: 0.85rem; font-weight: 600; color: #cbd5e1; }
     input, select, textarea {
-      background: rgba(30, 41, 59, 0.7);
+      background: rgba(15, 23, 42, 0.6);
       border: 1px solid var(--border);
       border-radius: 8px;
       padding: 0.75rem;
       color: white;
-      font-size: 1rem;
+      font-size: 0.95rem;
       width: 100%;
-      transition: border-color 0.2s;
+      transition: all 0.2s ease;
     }
     input:focus, select:focus, textarea:focus {
       outline: none;
       border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
     }
     table {
       width: 100%;
@@ -152,74 +160,78 @@ function layout(title, content, user) {
       text-align: left;
       border-bottom: 1px solid var(--border);
     }
-    th { color: var(--accent); font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; }
-    td { color: #e2e8f0; font-size: 0.95rem; }
+    th { color: var(--accent); font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.8px; }
+    td { color: #e2e8f0; font-size: 0.9rem; }
     
-    /* Custom Modern Announcement Feed Styles */
-    .announcement-feed {
+    /* Sleek Modern Discord-Inspired Broadcast Cards */
+    .broadcast-feed {
       display: flex;
       flex-direction: column;
-      gap: 1.25rem;
-      margin-top: 1rem;
+      gap: 1rem;
+      margin-top: 1.25rem;
     }
-    .announcement-card {
-      background: linear-gradient(135deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.8) 100%);
+    .broadcast-item {
+      background: linear-gradient(145deg, rgba(17, 24, 39, 0.9) 0%, rgba(11, 17, 32, 0.95) 100%);
       border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
       border-radius: 12px;
       padding: 1.5rem;
-      position: relative;
-      overflow: hidden;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+      transition: border-color 0.2s ease;
     }
-    .announcement-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 4px;
-      height: 100%;
-      background: var(--accent);
+    .broadcast-item:hover {
+      border-color: rgba(56, 189, 248, 0.3);
     }
-    .announcement-header {
+    .broadcast-top {
       display: flex;
       justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 0.75rem;
-      gap: 1rem;
-    }
-    .announcement-title {
-      font-size: 1.2rem;
-      font-weight: 700;
-      color: #fff;
-    }
-    .announcement-meta {
-      display: flex;
       align-items: center;
-      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+    .broadcast-tag {
+      background: var(--accent-glow);
+      color: var(--accent);
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 0.2rem 0.6rem;
+      border-radius: 6px;
+    }
+    .broadcast-date {
       font-size: 0.8rem;
       color: #64748b;
     }
-    .announcement-author {
-      background: rgba(56, 189, 248, 0.1);
-      color: var(--accent);
-      padding: 0.15rem 0.5rem;
-      border-radius: 4px;
-      font-weight: 600;
+    .broadcast-heading {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 0.5rem;
     }
-    .announcement-body {
+    .broadcast-content {
       color: #cbd5e1;
       font-size: 0.95rem;
       line-height: 1.6;
       white-space: pre-wrap;
+    }
+    .broadcast-footer-info {
+      margin-top: 1rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.04);
+      font-size: 0.8rem;
+      color: #64748b;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
     footer {
       text-align: center;
       padding: 1.5rem;
       color: #64748b;
-      font-size: 0.875rem;
+      font-size: 0.85rem;
       border-top: 1px solid var(--border);
-      background: rgba(15, 23, 42, 0.95);
+      background: rgba(9, 13, 22, 0.85);
     }
   </style>
 </head>
@@ -229,14 +241,14 @@ function layout(title, content, user) {
     <nav>
       <a href="/">Home</a>
       <a href="/announcements">Announcements</a>
-      ${user ? `<a href="/staff-announcements" style="color: var(--accent);">Staff Announcements</a>` : ''}
-      <a href="/staff">Staff Directory</a>
+      ${user ? `<a href="/staff-announcements" style="color: var(--accent);">Staff Memos</a>` : ''}
+      <a href="/staff">Directory</a>
       <a href="${DISCORD_URL}" target="_blank">Discord</a>
       ${user ? `
         <a href="/staff">Dashboard</a>
-        <a href="/staff/account">My Account</a>
-        ${user.is_site_manager ? '<a href="/staff/admin" style="color: var(--accent); font-weight: 700;">Site Manager</a>' : ''}
-        <a href="/logout" class="btn btn-danger" style="padding: 0.3rem 0.75rem; font-size: 0.875rem;">Logout</a>
+        <a href="/staff/account">Account</a>
+        ${user.is_site_manager ? '<a href="/staff/admin" style="color: var(--accent); font-weight: 700;">Admin</a>' : ''}
+        <a href="/logout" class="btn btn-danger" style="padding: 0.3rem 0.75rem; font-size: 0.85rem;">Logout</a>
       ` : `
         <a href="/staff/login" class="btn">Staff Login</a>
       `}
@@ -259,14 +271,14 @@ module.exports = async function handler(req, res) {
   try {
     if (pathname === '/' || pathname === '') {
       const html = layout('Home', `
-        <div class="card" style="text-align: center; padding: 3.5rem 2rem;">
-          <h1 style="font-size: 2.75rem; margin-bottom: 1rem;">Florida State Roleplay</h1>
-          <p style="font-size: 1.1rem; max-width: 600px; margin: 0 auto 2rem auto;">
-            Welcome to the official administrative portal for Florida State Roleplay. Access community updates, staff directories, and internal management tools.
+        <div class="card" style="text-align: center; padding: 4rem 2rem;">
+          <h1 style="font-size: 2.5rem; margin-bottom: 1rem; font-weight: 800;">Florida State Roleplay</h1>
+          <p style="font-size: 1.05rem; max-width: 550px; margin: 0 auto 2rem auto;">
+            The premier immersive roleplay experience. Check out community updates or access internal management portals below.
           </p>
           <div style="display: flex; gap: 1rem; justify-content: center;">
             <a href="/announcements" class="btn">View Announcements</a>
-            <a href="${DISCORD_URL}" class="btn" style="background: #334155;">Join Discord</a>
+            <a href="${DISCORD_URL}" class="btn" style="background: #1e293b; border: 1px solid var(--border);">Join Community Discord</a>
           </div>
         </div>
       `, user);
@@ -284,30 +296,29 @@ module.exports = async function handler(req, res) {
       }
 
       let announcementsHtml = announcements.length === 0 
-        ? '<div class="card" style="text-align: center; color: #64748b;"><p>No active announcements right now. Check back soon!</p></div>' 
-        : `<div class="announcement-feed">` + announcements.map(a => {
+        ? '<div class="card" style="text-align: center;"><p style="margin-bottom: 0;">No broadcasts posted yet. Check back later.</p></div>' 
+        : `<div class="broadcast-feed">` + announcements.map(a => {
             const dateStr = a.created_at ? new Date(a.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
             return `
-              <div class="announcement-card">
-                <div class="announcement-header">
-                  <div class="announcement-title">${escapeHtml(a.title)}</div>
-                  <div class="announcement-meta">
-                    ${dateStr ? `<span>${dateStr}</span>` : ''}
-                  </div>
+              <div class="broadcast-item">
+                <div class="broadcast-top">
+                  <span class="broadcast-tag">Broadcast</span>
+                  <span class="broadcast-date">${dateStr}</span>
                 </div>
-                <div style="margin-bottom: 0.75rem;">
-                  <span class="announcement-author">${escapeHtml(a.author || 'Management')}</span>
+                <div class="broadcast-heading">${escapeHtml(a.title)}</div>
+                <div class="broadcast-content">${escapeHtml(a.body)}</div>
+                <div class="broadcast-footer-info">
+                  <span>Posted by <strong>${escapeHtml(a.author || 'Administration')}</strong></span>
                 </div>
-                <div class="announcement-body">${escapeHtml(a.body)}</div>
               </div>
             `;
           }).join('') + `</div>`;
 
       const html = layout('Announcements', `
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 0.5rem;">
           <div>
-            <h2>Community Updates</h2>
-            <p style="margin-bottom: 0;">Stay up to date with the latest news, updates, and events from FSRP.</p>
+            <h2>Community Broadcasts</h2>
+            <p style="margin-bottom: 0;">Official network updates, patch notes, and community events.</p>
           </div>
         </div>
         ${announcementsHtml}
@@ -331,29 +342,28 @@ module.exports = async function handler(req, res) {
       }
 
       let announcementsHtml = announcements.length === 0 
-        ? '<div class="card" style="text-align: center; color: #64748b;"><p>No staff memos posted yet.</p></div>' 
-        : `<div class="announcement-feed">` + announcements.map(a => {
+        ? '<div class="card" style="text-align: center;"><p style="margin-bottom: 0;">No internal staff memos found.</p></div>' 
+        : `<div class="broadcast-feed">` + announcements.map(a => {
             const dateStr = a.created_at ? new Date(a.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
             return `
-              <div class="announcement-card" style="border-left-color: #3b82f6;">
-                <div class="announcement-header">
-                  <div class="announcement-title">${escapeHtml(a.title)}</div>
-                  <div class="announcement-meta">
-                    ${dateStr ? `<span>${dateStr}</span>` : ''}
-                  </div>
+              <div class="broadcast-item" style="border-left-color: #3b82f6;">
+                <div class="broadcast-top">
+                  <span class="broadcast-tag" style="background: rgba(59, 130, 246, 0.15); color: #60a5fa;">Internal Memo</span>
+                  <span class="broadcast-date">${dateStr}</span>
                 </div>
-                <div style="margin-bottom: 0.75rem;">
-                  <span class="announcement-author" style="background: rgba(59, 130, 246, 0.15); color: #60a5fa;">${escapeHtml(a.author || 'Admin')}</span>
+                <div class="broadcast-heading">${escapeHtml(a.title)}</div>
+                <div class="broadcast-content">${escapeHtml(a.content)}</div>
+                <div class="broadcast-footer-info">
+                  <span>Issued by <strong>${escapeHtml(a.author || 'Management')}</strong></span>
                 </div>
-                <div class="announcement-body">${escapeHtml(a.content)}</div>
               </div>
             `;
           }).join('') + `</div>`;
 
-      const html = layout('Staff Announcements', `
-        <div style="margin-bottom: 1.5rem;">
-          <h2>Staff Memos & Board</h2>
-          <p style="margin-bottom: 0;">Internal operational updates restricted to active staff personnel.</p>
+      const html = layout('Staff Memos', `
+        <div style="margin-bottom: 0.5rem;">
+          <h2>Staff Operations Board</h2>
+          <p style="margin-bottom: 0;">Confidential notices and updates restricted to active team members.</p>
         </div>
         ${announcementsHtml}
       `, user);
@@ -371,13 +381,13 @@ module.exports = async function handler(req, res) {
       }
 
       let rows = accounts.length === 0 
-        ? '<tr><td colspan="3" style="text-align: center;">No staff members registered.</td></tr>'
+        ? '<tr><td colspan="3" style="text-align: center;">No active staff records.</td></tr>'
         : accounts.map(acc => {
             const tierObj = RANK_TIERS.find(t => t.id === acc.rank_tier) || { name: acc.rank_tier || 'Staff' };
             return `
               <tr>
                 <td><strong>${escapeHtml(acc.username)}</strong></td>
-                <td><span style="background: rgba(56, 189, 248, 0.1); color: var(--accent); padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.85rem; font-weight: 600;">${escapeHtml(tierObj.name)}</span></td>
+                <td><span style="background: var(--accent-glow); color: var(--accent); padding: 0.2rem 0.5rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600;">${escapeHtml(tierObj.name)}</span></td>
                 <td>${escapeHtml(acc.rank_title || 'Staff Member')}</td>
               </tr>
             `;
@@ -386,13 +396,13 @@ module.exports = async function handler(req, res) {
       const html = layout('Staff Directory', `
         <div class="card">
           <h2>Staff Directory</h2>
-          <p>Active administrative and moderation personnel for Florida State Roleplay.</p>
+          <p>Active administrative and moderation personnel currently serving the community.</p>
           <table>
             <thead>
               <tr>
-                <th>Roblox Username</th>
-                <th>Rank Tier</th>
-                <th>Title</th>
+                <th>Username</th>
+                <th>Tier</th>
+                <th>Role Title</th>
               </tr>
             </thead>
             <tbody>
@@ -439,15 +449,15 @@ module.exports = async function handler(req, res) {
         } catch (e) {}
 
         const html = layout('Staff Login', `
-          <div class="card" style="max-width: 400px; margin: 4rem auto;">
+          <div class="card" style="max-width: 380px; margin: 3rem auto;">
             <h2>Staff Login</h2>
-            <p style="color: #ef4444; margin-bottom: 1rem;">Invalid username or password.</p>
+            <p style="color: #ef4444; margin-bottom: 1rem; font-size: 0.85rem;">Invalid credentials provided.</p>
             <form method="POST">
-              <label>Roblox Username</label>
+              <label>Username</label>
               <input type="text" name="username" required>
               <label>Password</label>
               <input type="password" name="password" required>
-              <button type="submit" class="btn" style="margin-top: 1rem;">Log In</button>
+              <button type="submit" class="btn" style="margin-top: 0.5rem;">Access Portal</button>
             </form>
           </div>
         `, user);
@@ -456,15 +466,15 @@ module.exports = async function handler(req, res) {
       }
 
       const html = layout('Staff Login', `
-        <div class="card" style="max-width: 400px; margin: 4rem auto;">
+        <div class="card" style="max-width: 380px; margin: 3rem auto;">
           <h2>Staff Login</h2>
-          <p>Use the credentials provided by management.</p>
+          <p>Enter your designated credentials to proceed.</p>
           <form method="POST">
-            <label>Roblox Username</label>
+            <label>Username</label>
             <input type="text" name="username" required>
             <label>Password</label>
             <input type="password" name="password" required>
-            <button type="submit" class="btn" style="margin-top: 1rem;">Log In</button>
+            <button type="submit" class="btn" style="margin-top: 0.5rem;">Access Portal</button>
           </form>
         </div>
       `, user);
@@ -503,26 +513,26 @@ module.exports = async function handler(req, res) {
           if (account && (await bcrypt.compare(currentPassword, account.password_hash))) {
             const newHash = await bcrypt.hash(newPassword, 10);
             await sql`UPDATE accounts SET password_hash = ${newHash} WHERE id = ${user.id}`;
-            message = 'Password changed successfully!';
+            message = 'Password updated successfully.';
           } else {
             message = 'Incorrect current password.';
           }
         } catch (e) {
-          message = 'Error updating password.';
+          message = 'Error processing request.';
         }
       }
 
-      const html = layout('My Account', `
-        <div class="card" style="max-width: 500px; margin: 2rem auto;">
-          <h2>My Account</h2>
-          <p>Manage your password and security settings.</p>
-          ${message ? `<p style="color: var(--accent); font-weight: bold; margin-bottom: 1rem;">${message}</p>` : ''}
+      const html = layout('Account Settings', `
+        <div class="card" style="max-width: 450px; margin: 2rem auto;">
+          <h2>Account Security</h2>
+          <p>Modify your portal access password.</p>
+          ${message ? `<p style="color: var(--accent); font-weight: bold; font-size: 0.85rem; margin-bottom: 1rem;">${message}</p>` : ''}
           <form method="POST">
             <label>Current Password</label>
             <input type="password" name="current_password" required>
             <label>New Password</label>
             <input type="password" name="new_password" required>
-            <button type="submit" class="btn" style="margin-top: 1rem;">Change Password</button>
+            <button type="submit" class="btn" style="margin-top: 0.5rem;">Update Password</button>
           </form>
         </div>
       `, user);
@@ -556,9 +566,9 @@ module.exports = async function handler(req, res) {
               INSERT INTO accounts (username, password_hash, rank_tier, rank_title, is_site_manager)
               VALUES (${username}, ${hash}, ${rank_tier}, ${rank_title}, ${is_site_manager})
             `;
-            message = 'Account created successfully!';
+            message = 'Staff account provisioned successfully.';
           } catch (e) {
-            message = 'Error creating account (username might already exist).';
+            message = 'Error: Username might already be in use.';
           }
         } else if (action === 'create_announcement') {
           const title = params.get('title');
@@ -580,16 +590,16 @@ module.exports = async function handler(req, res) {
                 INSERT INTO staff_announcements (title, content, author)
                 VALUES (${title}, ${bodyContent}, ${user.username})
               `;
-              message = 'Staff announcement posted successfully!';
+              message = 'Staff memo published successfully.';
             } else {
               await sql`
                 INSERT INTO announcements (title, body, author)
                 VALUES (${title}, ${bodyContent}, ${user.username})
               `;
-              message = 'Community announcement posted successfully!';
+              message = 'Community broadcast published successfully.';
             }
           } catch (e) {
-            message = 'Error posting announcement.';
+            message = 'Error posting broadcast.';
           }
         } else if (action === 'delete_announcement') {
           const id = params.get('id');
@@ -636,7 +646,7 @@ module.exports = async function handler(req, res) {
       let manageAnnouncementsList = '';
       
       if (publicAnnouncements.length > 0) {
-        manageAnnouncementsList += `<h4 style="color: var(--accent); margin-top: 1rem;">Public Announcements</h4><table><thead><tr><th>Title</th><th>Author</th><th style="text-align: right;">Action</th></tr></thead><tbody>`;
+        manageAnnouncementsList += `<h4 style="color: var(--accent); margin-top: 1rem; font-size: 0.9rem;">Public Broadcasts</h4><table><thead><tr><th>Title</th><th>Author</th><th style="text-align: right;">Action</th></tr></thead><tbody>`;
         manageAnnouncementsList += publicAnnouncements.map(a => `
           <tr>
             <td>${escapeHtml(a.title)}</td>
@@ -646,7 +656,7 @@ module.exports = async function handler(req, res) {
                 <input type="hidden" name="action" value="delete_announcement">
                 <input type="hidden" name="id" value="${a.id}">
                 <input type="hidden" name="type" value="public">
-                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Delete this announcement?')">Delete</button>
+                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Delete this broadcast?')">Delete</button>
               </form>
             </td>
           </tr>
@@ -655,7 +665,7 @@ module.exports = async function handler(req, res) {
       }
 
       if (staffAnnouncements.length > 0) {
-        manageAnnouncementsList += `<h4 style="color: var(--accent); margin-top: 1.5rem;">Staff Announcements</h4><table><thead><tr><th>Title</th><th>Author</th><th style="text-align: right;">Action</th></tr></thead><tbody>`;
+        manageAnnouncementsList += `<h4 style="color: var(--accent); margin-top: 1.5rem; font-size: 0.9rem;">Staff Memos</h4><table><thead><tr><th>Title</th><th>Author</th><th style="text-align: right;">Action</th></tr></thead><tbody>`;
         manageAnnouncementsList += staffAnnouncements.map(a => `
           <tr>
             <td>${escapeHtml(a.title)}</td>
@@ -665,7 +675,7 @@ module.exports = async function handler(req, res) {
                 <input type="hidden" name="action" value="delete_announcement">
                 <input type="hidden" name="id" value="${a.id}">
                 <input type="hidden" name="type" value="staff">
-                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Delete this staff announcement?')">Delete</button>
+                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Delete this memo?')">Delete</button>
               </form>
             </td>
           </tr>
@@ -674,44 +684,44 @@ module.exports = async function handler(req, res) {
       }
 
       if (publicAnnouncements.length === 0 && staffAnnouncements.length === 0) {
-        manageAnnouncementsList = `<p style="color: #64748b; margin-top: 0.5rem;">No announcements available to manage.</p>`;
+        manageAnnouncementsList = `<p style="color: #64748b; margin-top: 0.5rem; font-size: 0.9rem;">No active broadcasts or memos to manage.</p>`;
       }
 
-      const html = layout('Site Manager', `
+      const html = layout('Admin Center', `
         <div class="card">
-          <h2>Site Manager Control Center</h2>
-          ${message ? `<p style="color: var(--accent); font-weight: bold; margin-bottom: 1rem;">${message}</p>` : ''}
+          <h2>Admin Control Center</h2>
+          ${message ? `<p style="color: var(--accent); font-weight: bold; font-size: 0.85rem; margin-bottom: 1rem;">${message}</p>` : ''}
           
-          <h3 style="margin-top: 1.5rem;">Post Announcement</h3>
+          <h3 style="margin-top: 1.5rem; font-size: 1rem;">Publish Announcement</h3>
           <form method="POST">
             <input type="hidden" name="action" value="create_announcement">
             <div>
-              <label>Title</label>
+              <label>Title / Headline</label>
               <input type="text" name="title" required>
             </div>
             <div style="margin-top: 0.5rem;">
-              <label>Content / Body</label>
-              <textarea name="body" rows="4" required></textarea>
+              <label>Body Content</label>
+              <textarea name="body" rows="3" required></textarea>
             </div>
             <div style="margin-top: 0.5rem;">
-              <label>Target Audience</label>
+              <label>Target Channel</label>
               <select name="target">
-                <option value="public">Public Community</option>
-                <option value="staff">Staff Only</option>
+                <option value="public">Community Broadcast</option>
+                <option value="staff">Staff Memo Only</option>
               </select>
             </div>
-            <button type="submit" class="btn" style="margin-top: 0.5rem; width: auto;">Publish Announcement</button>
+            <button type="submit" class="btn" style="margin-top: 0.5rem; width: auto;">Publish Broadcast</button>
           </form>
 
-          <h3 style="margin-top: 2.5rem;">Manage & Delete Announcements</h3>
+          <h3 style="margin-top: 2rem; font-size: 1rem;">Active Announcements Management</h3>
           ${manageAnnouncementsList}
 
-          <h3 style="margin-top: 2.5rem;">Create Staff Account</h3>
+          <h3 style="margin-top: 2rem; font-size: 1rem;">Provision Staff Account</h3>
           <form method="POST">
             <input type="hidden" name="action" value="create_account">
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
               <div>
-                <label>Roblox Username</label>
+                <label>Username</label>
                 <input type="text" name="username" required>
               </div>
               <div>
@@ -727,24 +737,24 @@ module.exports = async function handler(req, res) {
                 </select>
               </div>
               <div>
-                <label>Rank Title</label>
+                <label>Role Title</label>
                 <input type="text" name="rank_title" value="Staff Member" required>
               </div>
             </div>
             <div style="margin-top: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
               <input type="checkbox" name="is_site_manager" style="width: auto;">
-              <label style="margin: 0;">Grant Site Manager Permissions</label>
+              <label style="margin: 0;">Grant Admin Control Access</label>
             </div>
             <button type="submit" class="btn" style="margin-top: 0.5rem; width: auto;">Create Account</button>
           </form>
 
-          <h3 style="margin-top: 2.5rem;">Existing Accounts</h3>
+          <h3 style="margin-top: 2rem; font-size: 1rem;">Registered Staff Roster</h3>
           <table>
             <thead>
               <tr>
                 <th>Username</th>
-                <th>Rank Tier</th>
-                <th>Site Manager</th>
+                <th>Tier</th>
+                <th>Admin Access</th>
               </tr>
             </thead>
             <tbody>
@@ -760,7 +770,7 @@ module.exports = async function handler(req, res) {
     const html = layout('Not Found', `
       <div class="card" style="text-align: center; padding: 3rem;">
         <h2>Page Not Found</h2>
-        <p>The page you are looking for does not exist.</p>
+        <p>The requested route does not exist.</p>
         <a href="/" class="btn" style="display: inline-block; margin-top: 1rem;">Return Home</a>
       </div>
     `, user);
