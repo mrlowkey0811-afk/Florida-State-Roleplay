@@ -40,7 +40,7 @@ function layout(title, content, user) {
     :root {
       --bg-base: #090d16;
       --bg-surface: #111827;
-      --bg-card: rgba(17, 24, 39, 0.75);
+      --bg-card: rgba(17, 24, 39, 0.82);
       --accent: #38bdf8;
       --accent-glow: rgba(56, 189, 248, 0.15);
       --border: rgba(255, 255, 255, 0.08);
@@ -49,8 +49,8 @@ function layout(title, content, user) {
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      background: linear-gradient(135deg, #050811 0%, #0f172a 100%),
-                  url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1920&q=80') no-repeat center center fixed;
+      background: linear-gradient(135deg, rgba(5, 8, 17, 0.88) 0%, rgba(15, 23, 42, 0.92) 100%),
+                  url('/cruiser.png') no-repeat center center fixed;
       background-blend-mode: overlay;
       background-size: cover;
       color: var(--text-main);
@@ -163,7 +163,6 @@ function layout(title, content, user) {
     th { color: var(--accent); font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.8px; }
     td { color: #e2e8f0; font-size: 0.9rem; }
     
-    /* Sleek Modern Discord-Inspired Broadcast Cards */
     .broadcast-feed {
       display: flex;
       flex-direction: column;
