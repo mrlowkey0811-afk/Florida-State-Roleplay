@@ -626,6 +626,28 @@ module.exports = async function handler(req, res) {
         }
       }
 
+      // Fetch Discord Channels dynamically from Discord API for the dropdowns
+      let discordChannels = [];
+      try {
+        const guildId = process.env.GUILD_ID;
+        const botToken = process.env.DISCORD_TOKEN;
+        if (guildId && botToken) {
+          const response = await fetch(`https://discord.com/api/v10/guilds/${guildId}/channels`, {
+            headers: { Authorization: `Bot ${botToken}` }
+          });
+          if (response.ok) {
+            const channels = await response.json();
+            discordChannels = channels.filter(c => c.type === 0 || c.type === 5); // Text & Announcement channels
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch Discord channels for admin dropdown:', err);
+      }
+
+      const channelOptions = discordChannels.length > 0 
+        ? discordChannels.map(c => `<option value="${c.id}">#${escapeHtml(c.name)}</option>`).join('')
+        : '<option value="">No channels found (Check Discord Token & Guild ID env variables)</option>';
+
       let accountsRes = { rows: [] };
       let publicAnnouncements = [];
 
@@ -675,8 +697,11 @@ module.exports = async function handler(req, res) {
           <form method="POST">
             <input type="hidden" name="action" value="deploy_ticket_panel">
             <div>
-              <label>Discord Channel ID</label>
-              <input type="text" name="channel_id" placeholder="e.g. 123456789012345678" required>
+              <label>Select Discord Channel</label>
+              <select name="channel_id" required>
+                <option value="" disabled selected>-- Choose Channel --</option>
+                ${channelOptions}
+              </select>
             </div>
             <button type="submit" class="btn" style="margin-top: 0.5rem; width: auto;">Post Ticket Panel</button>
           </form>
@@ -686,8 +711,11 @@ module.exports = async function handler(req, res) {
             <input type="hidden" name="action" value="send_embed">
             <div style="display: grid; grid-template-columns: 1fr; gap: 0.5rem;">
               <div>
-                <label>Channel ID</label>
-                <input type="text" name="channel_id" placeholder="Channel ID" required>
+                <label>Select Discord Channel</label>
+                <select name="channel_id" required>
+                  <option value="" disabled selected>-- Choose Channel --</option>
+                  ${channelOptions}
+                </select>
               </div>
               <div>
                 <label>Embed Title</label>
