@@ -533,6 +533,18 @@ module.exports = async function handler(req, res) {
         const params = new URLSearchParams(body);
         const action = params.get('action');
 
+        try {
+          await sql`
+            CREATE TABLE IF NOT EXISTS bot_commands_queue (
+              id SERIAL PRIMARY KEY,
+              action_type VARCHAR(100) NOT NULL,
+              payload TEXT NOT NULL,
+              status VARCHAR(50) DEFAULT 'pending',
+              created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+          `;
+        } catch(e) {}
+
         if (action === 'create_account') {
           const username = params.get('username');
           const password = params.get('password');
@@ -594,29 +606,28 @@ module.exports = async function handler(req, res) {
           } catch (e) {
             message = 'Error deleting announcement.';
           }
-        } else if (action === 'update_bot_settings') {
-          const welcomeMessage = params.get('welcome_message');
-          const botStatusText = params.get('bot_status_text');
-          try {
-            await sql`
-              CREATE TABLE IF NOT EXISTS bot_settings (
-                key VARCHAR(50) PRIMARY KEY,
-                value TEXT
-              );
-            `;
-            await sql`INSERT INTO bot_settings (key, value) VALUES ('welcome_message', ${welcomeMessage}) ON CONFLICT (key) DO UPDATE SET value = ${welcomeMessage}`;
-            await sql`INSERT INTO bot_settings (key, value) VALUES ('bot_status_text', ${botStatusText}) ON CONFLICT (key) DO UPDATE SET value = ${botStatusText}`;
-            message = 'Bot settings synchronized successfully.';
-          } catch (e) {
-            message = 'Error updating bot settings.';
-          }
+        } else if (action === 'deploy_ticket_panel') {
+          const channelId = params.get('channel_id');
+          await sql`INSERT INTO bot_commands_queue (action_type, payload) VALUES ('deploy_ticket_panel', ${channelId})`;
+          message = 'Ticket panel deploy command sent to bot queue!';
+        } else if (action === 'send_embed') {
+          const channelId = params.get('channel_id');
+          const embedTitle = params.get('embed_title');
+          const embedDescription = params.get('embed_description');
+          const payload = JSON.stringify({ channelId, embedTitle, embedDescription });
+          await sql`INSERT INTO bot_commands_queue (action_type, payload) VALUES ('send_embed', ${payload})`;
+          message = 'Custom embed dispatch command sent to bot queue!';
+        } else if (action === 'assign_role') {
+          const discordUserId = params.get('discord_user_id');
+          const roleId = params.get('role_id');
+          const payload = JSON.stringify({ discordUserId, roleId });
+          await sql`INSERT INTO bot_commands_queue (action_type, payload) VALUES ('assign_role', ${payload})`;
+          message = 'Role assignment command sent to bot queue!';
         }
       }
 
       let accountsRes = { rows: [] };
       let publicAnnouncements = [];
-      let staffAnnouncements = [];
-      let botSettings = { welcome_message: '', bot_status_text: '' };
 
       try {
         accountsRes = await sql`SELECT id, username, rank_tier, rank_title, is_site_manager FROM accounts ORDER BY id ASC`;
@@ -625,18 +636,6 @@ module.exports = async function handler(req, res) {
       try {
         const pubRes = await sql`SELECT id, title, author, created_at FROM announcements ORDER BY created_at DESC`;
         publicAnnouncements = pubRes.rows || [];
-      } catch (e) {}
-
-      try {
-        const staffRes = await sql`SELECT id, title, author, created_at FROM staff_announcements ORDER BY created_at DESC`;
-        staffAnnouncements = staffRes.rows || [];
-      } catch (e) {}
-
-      try {
-        const settingsRes = await sql`SELECT * FROM bot_settings`;
-        settingsRes.rows.forEach(row => {
-          botSettings[row.key] = row.value;
-        });
       } catch (e) {}
 
       let accountsList = (accountsRes.rows || []).map(acc => `
@@ -672,19 +671,50 @@ module.exports = async function handler(req, res) {
           <h2>Admin Control Center & Bot Management</h2>
           ${message ? `<p style="color: var(--accent); font-weight: bold; font-size: 0.85rem; margin-bottom: 1rem;">${message}</p>` : ''}
           
-          <h3 style="margin-top: 1.5rem; font-size: 1rem;">🤖 Discord Bot Control Center</h3>
-          <p style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 1rem;">Configure behavior metrics and triggers synced directly with your running bot application.</p>
+          <h3 style="margin-top: 1.5rem; font-size: 1rem;">🎫 Deploy Ticket Panel to Channel</h3>
           <form method="POST">
-            <input type="hidden" name="action" value="update_bot_settings">
+            <input type="hidden" name="action" value="deploy_ticket_panel">
             <div>
-              <label>Custom Welcome Message Text</label>
-              <input type="text" name="welcome_message" value="${escapeHtml(botSettings.welcome_message || 'Welcome to Florida State Roleplay!')}" placeholder="Hey {user}, welcome to the community!">
+              <label>Discord Channel ID</label>
+              <input type="text" name="channel_id" placeholder="e.g. 123456789012345678" required>
             </div>
-            <div style="margin-top: 0.5rem;">
-              <label>Bot Activity Status Text</label>
-              <input type="text" name="bot_status_text" value="${escapeHtml(botSettings.bot_status_text || 'Florida State Roleplay')}" placeholder="Playing Florida State Roleplay">
+            <button type="submit" class="btn" style="margin-top: 0.5rem; width: auto;">Post Ticket Panel</button>
+          </form>
+
+          <h3 style="margin-top: 2rem; font-size: 1rem;">🎨 Send Custom Embed to Channel</h3>
+          <form method="POST">
+            <input type="hidden" name="action" value="send_embed">
+            <div style="display: grid; grid-template-columns: 1fr; gap: 0.5rem;">
+              <div>
+                <label>Channel ID</label>
+                <input type="text" name="channel_id" placeholder="Channel ID" required>
+              </div>
+              <div>
+                <label>Embed Title</label>
+                <input type="text" name="embed_title" placeholder="Important Notice" required>
+              </div>
+              <div>
+                <label>Embed Description / Content</label>
+                <textarea name="embed_description" rows="3" placeholder="Message content goes here..." required></textarea>
+              </div>
             </div>
-            <button type="submit" class="btn" style="margin-top: 0.75rem; width: auto;">Save Bot Configuration</button>
+            <button type="submit" class="btn" style="margin-top: 0.5rem; width: auto;">Dispatch Embed</button>
+          </form>
+
+          <h3 style="margin-top: 2rem; font-size: 1rem;">🛡️ Manage User Roles (Site-to-Discord)</h3>
+          <form method="POST">
+            <input type="hidden" name="action" value="assign_role">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+              <div>
+                <label>Discord User ID</label>
+                <input type="text" name="discord_user_id" placeholder="User ID" required>
+              </div>
+              <div>
+                <label>Discord Role ID</label>
+                <input type="text" name="role_id" placeholder="Role ID to assign" required>
+              </div>
+            </div>
+            <button type="submit" class="btn" style="margin-top: 0.5rem; width: auto;">Assign Role</button>
           </form>
 
           <h3 style="margin-top: 2rem; font-size: 1rem;">Publish Announcement</h3>
