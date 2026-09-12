@@ -220,14 +220,13 @@ function layout(title, content, user) {
     <nav>
       <a href="/">Home</a>
       <a href="/announcements">Announcements</a>
-      <a href="/tickets">Support Tickets</a>
       ${user ? `<a href="/staff-announcements" style="color: var(--accent);">Staff Memos</a>` : ''}
       <a href="/staff">Directory</a>
       <a href="${DISCORD_URL}" target="_blank">Discord</a>
       ${user ? `
         <a href="/staff">Dashboard</a>
         <a href="/staff/account">Account</a>
-        ${user.is_site_manager ? '<a href="/staff/admin" style="color: var(--accent); font-weight: 700;">Admin</a>' : ''}
+        ${user.is_site_manager ? '<a href="/staff/admin" style="color: var(--accent); font-weight: 700;">Admin & Bot Control</a>' : ''}
         <a href="/logout" class="btn btn-danger" style="padding: 0.3rem 0.75rem; font-size: 0.85rem;">Logout</a>
       ` : `
         <a href="/staff/login" class="btn">Staff Login</a>
@@ -247,7 +246,6 @@ function layout(title, content, user) {
 module.exports = async function handler(req, res) {
   const parsedUrl = parse(req.url, true);
   const pathname = parsedUrl.pathname;
-  const query = parsedUrl.query;
   const user = getSessionUser(req);
 
   try {
@@ -256,11 +254,11 @@ module.exports = async function handler(req, res) {
         <div class="card" style="text-align: center; padding: 4rem 2rem;">
           <h1 style="font-size: 2.5rem; margin-bottom: 1rem; font-weight: 800;">Florida State Roleplay</h1>
           <p style="font-size: 1.05rem; max-width: 550px; margin: 0 auto 2rem auto;">
-            The premier immersive roleplay experience. Check out community updates or submit support tickets below.
+            The premier immersive roleplay experience. Check out community updates or connect with us on Discord below.
           </p>
           <div style="display: flex; gap: 1rem; justify-content: center;">
             <a href="/announcements" class="btn">View Announcements</a>
-            <a href="/tickets" class="btn" style="background: #1e293b; border: 1px solid var(--border);">Open Support Ticket</a>
+            <a href="${DISCORD_URL}" target="_blank" class="btn" style="background: #1e293b; border: 1px solid var(--border);">Join Discord</a>
           </div>
         </div>
       `, user);
@@ -304,202 +302,6 @@ module.exports = async function handler(req, res) {
           </div>
         </div>
         ${announcementsHtml}
-      `, user);
-      res.setHeader('Content-Type', 'text/html');
-      return res.status(200).send(html);
-    }
-
-    if (pathname === '/tickets') {
-      let message = '';
-      const prefilledCategory = query.category;
-
-      // Automatically create ticket if arriving from Discord menu button with query parameter
-      if (prefilledCategory) {
-        const defaultSubject = `${prefilledCategory} Inquiry`;
-        const defaultMessage = `Ticket automatically opened via Discord panel for ${prefilledCategory}.`;
-        const username = user ? user.username : 'Discord User';
-
-        try {
-          const ticketRes = await sql`
-            INSERT INTO tickets (username, subject, category, message, status)
-            VALUES (${username}, ${defaultSubject}, ${prefilledCategory}, ${defaultMessage}, 'Open')
-            RETURNING id
-          `;
-          const newTicketId = ticketRes.rows[0].id;
-          
-          await sql`
-            INSERT INTO ticket_messages (ticket_id, username, message)
-            VALUES (${newTicketId}, ${username}, ${defaultMessage})
-          `;
-
-          res.writeHead(302, { Location: `/tickets/view?id=${newTicketId}` });
-          return res.end();
-        } catch (e) {
-          console.error('Error auto-creating ticket:', e);
-          message = 'Failed to automatically create ticket. Please use the form below.';
-        }
-      }
-
-      // Manual fallback form submission route
-      if (req.method === 'POST') {
-        let body = '';
-        for await (const chunk of req) body += chunk;
-        const params = new URLSearchParams(body);
-        const username = params.get('username');
-        const subject = params.get('subject');
-        const category = params.get('category');
-        const ticketMessage = params.get('message');
-
-        if (username && subject && ticketMessage) {
-          try {
-            const ticketRes = await sql`
-              INSERT INTO tickets (username, subject, category, message, status)
-              VALUES (${username}, ${subject}, ${category}, ${ticketMessage}, 'Open')
-              RETURNING id
-            `;
-            const newTicketId = ticketRes.rows[0].id;
-            
-            await sql`
-              INSERT INTO ticket_messages (ticket_id, username, message)
-              VALUES (${newTicketId}, ${username}, ${ticketMessage})
-            `;
-
-            res.writeHead(302, { Location: `/tickets/view?id=${newTicketId}` });
-            return res.end();
-          } catch (e) {
-            message = 'Error submitting ticket. Please try again.';
-          }
-        }
-      }
-
-      const html = layout('Support Tickets', `
-        <div class="card" style="max-width: 600px; margin: 0 auto;">
-          <h2>Create Support Ticket</h2>
-          <p>Fill out the form below to open your ticket manually.</p>
-          ${message ? `<p style="color: var(--accent); font-weight: bold; font-size: 0.85rem; margin-bottom: 1rem;">${message}</p>` : ''}
-          <form method="POST">
-            <div>
-              <label>Your Username</label>
-              <input type="text" name="username" placeholder="e.g. JohnDoe" required>
-            </div>
-            <div>
-              <label>Category</label>
-              <select name="category">
-                <option value="General Support">General Support</option>
-                <option value="High Rank Support">High Rank Support</option>
-                <option value="Ownership Support">Ownership Support</option>
-                <option value="Player Report">Player Report</option>
-              </select>
-            </div>
-            <div>
-              <label>Subject</label>
-              <input type="text" name="subject" placeholder="Brief summary of your request" required>
-            </div>
-            <div>
-              <label>Detailed Message</label>
-              <textarea name="message" rows="4" placeholder="Provide as much detail as possible..." required></textarea>
-            </div>
-            <button type="submit" class="btn" style="margin-top: 0.5rem;">Open Ticket</button>
-          </form>
-        </div>
-      `, user);
-      res.setHeader('Content-Type', 'text/html');
-      return res.status(200).send(html);
-    }
-
-    if (pathname === '/tickets/view') {
-      const ticketId = query.id;
-      if (!ticketId) {
-        res.writeHead(302, { Location: '/tickets' });
-        return res.end();
-      }
-
-      let ticket = null;
-      let messages = [];
-
-      try {
-        const ticketRes = await sql`SELECT * FROM tickets WHERE id = ${ticketId}`;
-        ticket = ticketRes.rows[0];
-        const msgRes = await sql`SELECT * FROM ticket_messages WHERE ticket_id = ${ticketId} ORDER BY created_at ASC`;
-        messages = msgRes.rows || [];
-      } catch (e) {}
-
-      if (!ticket) {
-        const html = layout('Ticket Not Found', `<div class="card"><h2>Ticket Not Found</h2><p>The requested ticket does not exist.</p></div>`, user);
-        res.setHeader('Content-Type', 'text/html');
-        return res.status(404).send(html);
-      }
-
-      let chatMessage = '';
-      if (req.method === 'POST') {
-        let body = '';
-        for await (const chunk of req) body += chunk;
-        const params = new URLSearchParams(body);
-        const replyText = params.get('message');
-        const replyAuthor = user ? user.username : (params.get('username') || ticket.username);
-
-        if (replyText) {
-          try {
-            await sql`
-              INSERT INTO ticket_messages (ticket_id, username, message)
-              VALUES (${ticketId}, ${replyAuthor}, ${replyText})
-            `;
-            res.writeHead(302, { Location: `/tickets/view?id=${ticketId}` });
-            return res.end();
-          } catch (e) {
-            chatMessage = 'Failed to send message.';
-          }
-        }
-      }
-
-      let chatHtml = messages.map(m => `
-        <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; margin-bottom: 0.75rem;">
-          <div style="display: flex; justify-content: space-between; margin-bottom: 0.3rem;">
-            <strong style="color: var(--accent); font-size: 0.9rem;">${escapeHtml(m.username)}</strong>
-            <span style="font-size: 0.75rem; color: #64748b;">${new Date(m.created_at).toLocaleString()}</span>
-          </div>
-          <p style="margin-bottom: 0; color: #e2e8f0; font-size: 0.95rem; white-space: pre-wrap;">${escapeHtml(m.message)}</p>
-        </div>
-      `).join('');
-
-      const html = layout(`Ticket #${ticket.id}`, `
-        <div class="card">
-          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem;">
-            <div>
-              <span class="broadcast-tag">${escapeHtml(ticket.category)}</span>
-              <h2 style="margin-top: 0.5rem; margin-bottom: 0.2rem;">${escapeHtml(ticket.subject)}</h2>
-              <p style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 0;">Opened by <strong>${escapeHtml(ticket.username)}</strong></p>
-            </div>
-            <div>
-              <span style="background: ${ticket.status === 'Open' ? 'rgba(56, 189, 248, 0.15)' : 'rgba(148, 163, 184, 0.15)'}; color: ${ticket.status === 'Open' ? '#38bdf8' : '#94a3b8'}; padding: 0.3rem 0.75rem; border-radius: 6px; font-weight: 600; font-size: 0.85rem;">${escapeHtml(ticket.status)}</span>
-            </div>
-          </div>
-
-          <div style="margin-bottom: 2rem;">
-            <h3 style="font-size: 1rem; margin-bottom: 1rem; color: #cbd5e1;">Conversation History</h3>
-            ${chatHtml}
-          </div>
-
-          ${ticket.status === 'Open' ? `
-            <form method="POST">
-              <h3 style="font-size: 1rem; margin-bottom: 0.5rem; color: #cbd5e1;">Post Reply</h3>
-              ${!user ? `
-                <div style="margin-bottom: 0.5rem;">
-                  <label>Your Username</label>
-                  <input type="text" name="username" value="${escapeHtml(ticket.username)}" required>
-                </div>
-              ` : `
-                <p style="font-size: 0.85rem; color: var(--accent); margin-bottom: 0.5rem;">Replying as staff: <strong>${escapeHtml(user.username)}</strong></p>
-              `}
-              <div>
-                <textarea name="message" rows="3" placeholder="Type your response here..." required></textarea>
-              </div>
-              <button type="submit" class="btn" style="margin-top: 0.5rem; width: auto;">Send Reply</button>
-            </form>
-          ` : `
-            <p style="text-align: center; color: #64748b; font-style: italic;">This ticket has been closed.</p>
-          `}
-        </div>
       `, user);
       res.setHeader('Content-Type', 'text/html');
       return res.status(200).send(html);
@@ -792,13 +594,21 @@ module.exports = async function handler(req, res) {
           } catch (e) {
             message = 'Error deleting announcement.';
           }
-        } else if (action === 'close_ticket') {
-          const ticketId = params.get('ticket_id');
+        } else if (action === 'update_bot_settings') {
+          const welcomeMessage = params.get('welcome_message');
+          const botStatusText = params.get('bot_status_text');
           try {
-            await sql`UPDATE tickets SET status = 'Closed' WHERE id = ${ticketId}`;
-            message = 'Ticket closed successfully.';
+            await sql`
+              CREATE TABLE IF NOT EXISTS bot_settings (
+                key VARCHAR(50) PRIMARY KEY,
+                value TEXT
+              );
+            `;
+            await sql`INSERT INTO bot_settings (key, value) VALUES ('welcome_message', ${welcomeMessage}) ON CONFLICT (key) DO UPDATE SET value = ${welcomeMessage}`;
+            await sql`INSERT INTO bot_settings (key, value) VALUES ('bot_status_text', ${botStatusText}) ON CONFLICT (key) DO UPDATE SET value = ${botStatusText}`;
+            message = 'Bot settings synchronized successfully.';
           } catch (e) {
-            message = 'Error closing ticket.';
+            message = 'Error updating bot settings.';
           }
         }
       }
@@ -806,7 +616,7 @@ module.exports = async function handler(req, res) {
       let accountsRes = { rows: [] };
       let publicAnnouncements = [];
       let staffAnnouncements = [];
-      let tickets = [];
+      let botSettings = { welcome_message: '', bot_status_text: '' };
 
       try {
         accountsRes = await sql`SELECT id, username, rank_tier, rank_title, is_site_manager FROM accounts ORDER BY id ASC`;
@@ -823,8 +633,10 @@ module.exports = async function handler(req, res) {
       } catch (e) {}
 
       try {
-        const ticketRes = await sql`SELECT * FROM tickets ORDER BY created_at DESC`;
-        tickets = ticketRes.rows || [];
+        const settingsRes = await sql`SELECT * FROM bot_settings`;
+        settingsRes.rows.forEach(row => {
+          botSettings[row.key] = row.value;
+        });
       } catch (e) {}
 
       let accountsList = (accountsRes.rows || []).map(acc => `
@@ -855,36 +667,25 @@ module.exports = async function handler(req, res) {
         manageAnnouncementsList += `</tbody></table>`;
       }
 
-      let ticketsList = tickets.length === 0 
-        ? '<p style="color: #64748b; margin-top: 0.5rem; font-size: 0.9rem;">No support tickets submitted yet.</p>'
-        : `<table><thead><tr><th>ID</th><th>User</th><th>Category</th><th>Subject</th><th>Status</th><th style="text-align: right;">Action</th></tr></thead><tbody>` + 
-          tickets.map(t => `
-            <tr>
-              <td>#${t.id}</td>
-              <td><strong>${escapeHtml(t.username)}</strong></td>
-              <td><span style="background: var(--accent-glow); color: var(--accent); padding: 0.2rem 0.5rem; border-radius: 6px; font-size: 0.75rem;">${escapeHtml(t.category)}</span></td>
-              <td><a href="/tickets/view?id=${t.id}" style="color: #fff; text-decoration: underline;">${escapeHtml(t.subject)}</a></td>
-              <td><span style="color: ${t.status === 'Open' ? '#38bdf8' : '#94a3b8'}; font-weight: 600;">${escapeHtml(t.status)}</span></td>
-              <td style="text-align: right;">
-                <a href="/tickets/view?id=${t.id}" class="btn btn-sm" style="margin-right: 0.25rem;">Chat</a>
-                ${t.status === 'Open' ? `
-                  <form method="POST" style="display:inline;">
-                    <input type="hidden" name="action" value="close_ticket">
-                    <input type="hidden" name="ticket_id" value="${t.id}">
-                    <button type="submit" class="btn btn-danger btn-sm">Close</button>
-                  </form>
-                ` : ''}
-              </td>
-            </tr>
-          `).join('') + `</tbody></table>`;
-
-      const html = layout('Admin Center', `
+      const html = layout('Admin & Bot Control', `
         <div class="card">
-          <h2>Admin Control Center</h2>
+          <h2>Admin Control Center & Bot Management</h2>
           ${message ? `<p style="color: var(--accent); font-weight: bold; font-size: 0.85rem; margin-bottom: 1rem;">${message}</p>` : ''}
           
-          <h3 style="margin-top: 1.5rem; font-size: 1rem;">Manage Support Tickets</h3>
-          ${ticketsList}
+          <h3 style="margin-top: 1.5rem; font-size: 1rem;">🤖 Discord Bot Control Center</h3>
+          <p style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 1rem;">Configure behavior metrics and triggers synced directly with your running bot application.</p>
+          <form method="POST">
+            <input type="hidden" name="action" value="update_bot_settings">
+            <div>
+              <label>Custom Welcome Message Text</label>
+              <input type="text" name="welcome_message" value="${escapeHtml(botSettings.welcome_message || 'Welcome to Florida State Roleplay!')}" placeholder="Hey {user}, welcome to the community!">
+            </div>
+            <div style="margin-top: 0.5rem;">
+              <label>Bot Activity Status Text</label>
+              <input type="text" name="bot_status_text" value="${escapeHtml(botSettings.bot_status_text || 'Florida State Roleplay')}" placeholder="Playing Florida State Roleplay">
+            </div>
+            <button type="submit" class="btn" style="margin-top: 0.75rem; width: auto;">Save Bot Configuration</button>
+          </form>
 
           <h3 style="margin-top: 2rem; font-size: 1rem;">Publish Announcement</h3>
           <form method="POST">
