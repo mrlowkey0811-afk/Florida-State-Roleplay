@@ -311,6 +311,36 @@ module.exports = async function handler(req, res) {
 
     if (pathname === '/tickets') {
       let message = '';
+      const prefilledCategory = query.category;
+
+      // Automatically create ticket if arriving from Discord menu button with query parameter
+      if (prefilledCategory) {
+        const defaultSubject = `${prefilledCategory} Inquiry`;
+        const defaultMessage = `Ticket automatically opened via Discord panel for ${prefilledCategory}.`;
+        const username = user ? user.username : 'Discord User';
+
+        try {
+          const ticketRes = await sql`
+            INSERT INTO tickets (username, subject, category, message, status)
+            VALUES (${username}, ${defaultSubject}, ${prefilledCategory}, ${defaultMessage}, 'Open')
+            RETURNING id
+          `;
+          const newTicketId = ticketRes.rows[0].id;
+          
+          await sql`
+            INSERT INTO ticket_messages (ticket_id, username, message)
+            VALUES (${newTicketId}, ${username}, ${defaultMessage})
+          `;
+
+          res.writeHead(302, { Location: `/tickets/view?id=${newTicketId}` });
+          return res.end();
+        } catch (e) {
+          console.error('Error auto-creating ticket:', e);
+          message = 'Failed to automatically create ticket. Please use the form below.';
+        }
+      }
+
+      // Manual fallback form submission route
       if (req.method === 'POST') {
         let body = '';
         for await (const chunk of req) body += chunk;
@@ -342,25 +372,23 @@ module.exports = async function handler(req, res) {
         }
       }
 
-      const prefilledCategory = query.category || 'General Support';
-
       const html = layout('Support Tickets', `
         <div class="card" style="max-width: 600px; margin: 0 auto;">
           <h2>Create Support Ticket</h2>
-          <p>Fill out the form below to open your ticket. Staff will respond directly within your ticket portal.</p>
+          <p>Fill out the form below to open your ticket manually.</p>
           ${message ? `<p style="color: var(--accent); font-weight: bold; font-size: 0.85rem; margin-bottom: 1rem;">${message}</p>` : ''}
           <form method="POST">
             <div>
-              <label>Your Roblox / Discord Username</label>
+              <label>Your Username</label>
               <input type="text" name="username" placeholder="e.g. JohnDoe" required>
             </div>
             <div>
               <label>Category</label>
               <select name="category">
-                <option value="General Support" ${prefilledCategory === 'General Support' ? 'selected' : ''}>General Support</option>
-                <option value="High Rank Support" ${prefilledCategory === 'High Rank Support' ? 'selected' : ''}>High Rank Support</option>
-                <option value="Ownership Support" ${prefilledCategory === 'Ownership Support' ? 'selected' : ''}>Ownership Support</option>
-                <option value="Player Report" ${prefilledCategory === 'Player Report' ? 'selected' : ''}>Player Report</option>
+                <option value="General Support">General Support</option>
+                <option value="High Rank Support">High Rank Support</option>
+                <option value="Ownership Support">Ownership Support</option>
+                <option value="Player Report">Player Report</option>
               </select>
             </div>
             <div>
