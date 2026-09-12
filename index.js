@@ -329,7 +329,6 @@ module.exports = async function handler(req, res) {
             `;
             const newTicketId = ticketRes.rows[0].id;
             
-            // Also insert initial message into chat history
             await sql`
               INSERT INTO ticket_messages (ticket_id, username, message)
               VALUES (${newTicketId}, ${username}, ${ticketMessage})
