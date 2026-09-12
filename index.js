@@ -402,7 +402,7 @@ module.exports = async function handler(req, res) {
       return res.status(200).send(html);
     }
 
-    // --- ADMIN & TICKET PANEL CONTROL ---
+    // --- ADMIN PANEL (WITHOUT BOT DEPLOYMENT) ---
     if (pathname === '/staff/admin') {
       if (!user || !user.is_site_manager) {
         res.writeHead(302, { Location: '/staff/login' });
@@ -418,15 +418,6 @@ module.exports = async function handler(req, res) {
 
         try {
           await sql`
-            CREATE TABLE IF NOT EXISTS bot_commands_queue (
-              id SERIAL PRIMARY KEY,
-              action_type VARCHAR(100) NOT NULL,
-              payload TEXT NOT NULL,
-              status VARCHAR(50) DEFAULT 'pending',
-              created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            );
-          `;
-          await sql`
             CREATE TABLE IF NOT EXISTS staff_announcements (
               id SERIAL PRIMARY KEY,
               title VARCHAR(255) NOT NULL,
@@ -437,18 +428,7 @@ module.exports = async function handler(req, res) {
           `;
         } catch(e) {}
 
-        if (action === 'deploy_custom_ticket_panel') {
-          const channelId = params.get('channel_id');
-          const title = params.get('title');
-          const description = params.get('description');
-          const footer = params.get('footer');
-          const buttonLabel = params.get('button_label');
-          const buttonEmoji = params.get('button_emoji');
-
-          const payload = JSON.stringify({ channelId, title, description, footer, buttonLabel, buttonEmoji });
-          await sql`INSERT INTO bot_commands_queue (action_type, payload) VALUES ('deploy_custom_ticket_panel', ${payload})`;
-          message = 'Custom ticket panel deployment queued successfully!';
-        } else if (action === 'create_announcement') {
+        if (action === 'create_announcement') {
           const title = params.get('title');
           const bodyContent = params.get('body');
           const target = params.get('target');
@@ -495,30 +475,6 @@ module.exports = async function handler(req, res) {
         }
       }
 
-      // Fetch Channels from Discord API
-      let discordChannels = [];
-      try {
-        const guildId = process.env.GUILD_ID;
-        const botToken = process.env.DISCORD_TOKEN;
-        if (guildId && botToken) {
-          const response = await fetch(`https://discord.com/api/v10/guilds/${guildId}/channels`, {
-            headers: { Authorization: `Bot ${botToken}` }
-          });
-          if (response.ok) {
-            const channels = await response.json();
-            discordChannels = channels.filter(c => c.type === 0 || c.type === 5);
-          }
-        }
-      } catch (err) {}
-
-      let channelOptions = discordChannels.map(c => `
-        <option value="${c.id}" ${c.id === '1548319013011071107' ? 'selected' : ''}>#${c.name} (${c.id})</option>
-      `).join('');
-
-      if (!discordChannels.some(c => c.id === '1548319013011071107')) {
-        channelOptions = `<option value="1548319013011071107" selected>Ticket Channel (#1548319013011071107)</option>` + channelOptions;
-      }
-
       let accountsRes = { rows: [] };
       let publicAnnouncements = [];
       try {
@@ -551,39 +507,7 @@ module.exports = async function handler(req, res) {
           <h2>Admin Control Center</h2>
           ${message ? `<p style="color: var(--accent); font-weight: bold; margin-bottom: 1rem;">${message}</p>` : ''}
           
-          <h3 style="margin-top: 1rem; font-size: 1rem;">🎫 Deploy Custom Ticket Panel</h3>
-          <form method="POST">
-            <input type="hidden" name="action" value="deploy_custom_ticket_panel">
-            <div>
-              <label>Target Channel</label>
-              <select name="channel_id" required>${channelOptions}</select>
-            </div>
-            <div>
-              <label>Embed Title</label>
-              <input type="text" name="title" value="🎫 Florida State Roleplay — Support Center" required>
-            </div>
-            <div>
-              <label>Embed Description</label>
-              <textarea name="description" rows="3" required>Need assistance, want to report a user, or have a question? Click the button below to open a private ticket with our staff team.</textarea>
-            </div>
-            <div>
-              <label>Footer Text</label>
-              <input type="text" name="footer" value="Florida State Roleplay Security">
-            </div>
-            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1rem;">
-              <div>
-                <label>Button Label</label>
-                <input type="text" name="button_label" value="Create Support Ticket" required>
-              </div>
-              <div>
-                <label>Button Emoji</label>
-                <input type="text" name="button_emoji" value="🎫" required>
-              </div>
-            </div>
-            <button type="submit" class="btn" style="margin-top: 0.5rem; width: auto;">Deploy Ticket Panel</button>
-          </form>
-
-          <h3 style="margin-top: 2rem; font-size: 1rem;">📢 Publish Announcement</h3>
+          <h3 style="margin-top: 1rem; font-size: 1rem;">📢 Publish Announcement</h3>
           <form method="POST">
             <input type="hidden" name="action" value="create_announcement">
             <div><label>Title</label><input type="text" name="title" required></div>
