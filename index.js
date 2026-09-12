@@ -50,7 +50,7 @@ function layout(title, content, user) {
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       background: linear-gradient(135deg, rgba(5, 8, 17, 0.88) 0%, rgba(15, 23, 42, 0.92) 100%),
-                  url('/cruiser.png') no-repeat center center fixed;
+                  url('https://raw.githubusercontent.com/mrlowkey0811-afk/Florida-State-Roleplay/main/cruiser.png') no-repeat center center fixed;
       background-blend-mode: overlay;
       background-size: cover;
       color: var(--text-main);
